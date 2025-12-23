@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post — Social</title>
+<style>
+/* CSS Тот же самый */
+:root { --bg: #0b0f14; --bg-soft: #111827; --card: #0f1624; --border: 1px solid rgba(255,255,255,.08); --text: #e5e7eb; --text-dim: #9ca3af; --accent: #1d9bf0; --radius: 14px; } * { box-sizing: border-box; } html, body { height: 100%; } body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 system-ui, -apple-system, Segoe UI, Roboto; } a { color: inherit; text-decoration: none; } .container { width: min(680px, 100% - 24px); margin: 0 auto; } .header { position: sticky; top: 0; background: rgba(11,15,20,.85); backdrop-filter: blur(10px); border-bottom: var(--border); z-index: 10; } .header-inner { display: flex; align-items: center; gap: 14px; padding: 14px 0; } .logo { font-weight: 900; font-size: 18px; } .user-box { margin-left: auto; display: flex; align-items: center; gap: 12px; } .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #1d9bf0, #38bdf8); display:flex; justify-content:center; align-items:center; font-weight:bold; color:white; } .user-meta { display: grid; line-height: 1.2; } .user-name { font-weight: 700; font-size: 14px; } .user-handle { font-size: 12px; color: var(--text-dim); } .post { background: var(--card); border: var(--border); border-radius: var(--radius); padding: 16px; margin-top: 16px; } .post-header { display: flex; gap: 12px; } .post-avatar { width: 48px; height: 48px; border-radius: 50%; background: #1f2937; display:flex; justify-content:center; align-items:center; font-weight:bold; } .post-author { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } .post-author strong { font-weight: 700; } .post-author span { color: var(--text-dim); font-size: 13px; } .post-text { margin-top: 10px; font-size: 16px; white-space: pre-wrap; } .post-actions { display: flex; justify-content: space-between; max-width: 420px; margin-top: 14px; color: var(--text-dim); font-size: 14px; } .comments { margin-top: 18px; display: grid; gap: 14px; } .comment { display: flex; gap: 10px; padding-bottom: 12px; border-bottom: var(--border); } .comment-avatar { width: 36px; height: 36px; border-radius: 50%; background: #1f2937; display:flex; justify-content:center; align-items:center; font-weight:bold; } .comment-body { display: grid; gap: 4px; } .comment-author { display: flex; gap: 6px; align-items: center; } .comment-author strong { font-size: 14px; } .comment-author span { font-size: 12px; color: var(--text-dim); } .comment-text { font-size: 14px; } .comment-form { margin-top: 16px; display: grid; gap: 10px; } textarea { width: 100%; min-height: 80px; background: var(--bg-soft); border: var(--border); border-radius: var(--radius); padding: 10px; color: var(--text); resize: vertical; } textarea::placeholder { color: var(--text-dim); } .btn-primary { align-self: flex-end; background: var(--accent); color: #fff; border: none; padding: 8px 14px; border-radius: 999px; cursor: pointer; } .footer { text-align: center; padding: 28px 0 36px; color: var(--text-dim); font-size: 13px; } .liked { color: #ef4444; }
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo"><a href="{% url 'index' %}">Social</a></div>
+    
+    {% if user.is_authenticated %}
+    <div class="user-box">
+      <div class="user-meta">
+        <div class="user-name">{{ user.username }}</div>
+        <div class="user-handle"><a href="{% url 'logout' %}" style="color: var(--accent)">Выйти</a></div>
+      </div>
+      <div class="avatar">{{ user.username|first|upper }}</div>
+    </div>
+    {% else %}
+    <div style="margin-left: auto;">
+        <a href="{% url 'login' %}" style="color: white;">Войти</a>
+    </div>
+    {% endif %}
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- POST -->
+  <article class="post">
+    <div class="post-header">
+      <div class="post-avatar">{{ post.author.username|first|upper }}</div>
+      <div>
+        <div class="post-author">
+          <strong>{{ post.author.username }}</strong>
+          <span>· {{ post.created_at|date:"d M Y" }}</span>
+        </div>
+
+        <div class="post-text">{{ post.text }}</div>
+      </div>
+    </div>
+
+    <div class="post-actions">
+      <span>💬 {{ post.comments.count }}</span>
+      <span>🔁 0</span>
+      
+      <a href="{% url 'like_post' post.pk %}" style="text-decoration:none;" class="{% if user_has_liked %}liked{% endif %}">
+          ❤️ {{ post.total_likes }}
+      </a>
+      
+      <span>↗ Поделиться</span>
+    </div>
+    {% if user_has_liked %}
+        <div style="font-size: 12px; color: #ef4444; margin-top: 10px;">Вам понравился данный пост</div>
+    {% endif %}
+  </article>
+
+  <!-- COMMENTS -->
+  <section class="comments">
+    {% for comment in comments %}
+    <div class="comment">
+      <div class="comment-avatar">{{ comment.author.username|first|upper }}</div>
+      <div class="comment-body">
+        <div class="comment-author">
+          <strong>{{ comment.author.username }}</strong>
+          <span>· {{ comment.created_at|timesince }} назад</span>
+        </div>
+        <div class="comment-text">{{ comment.text }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+
+  <!-- ADD COMMENT -->
+  {% if user.is_authenticated %}
+  <form class="comment-form" method="POST">
+    {% csrf_token %}
+    {{ form.text }}
+    <button class="btn-primary" type="submit">Отправить</button>
+  </form>
+  {% else %}
+  <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #999;">
+      <a href="{% url 'login' %}" style="color: var(--accent)">Войдите</a>, чтобы оставить комментарий.
+  </p>
+  {% endif %}
+
+</main>
+
+<footer class="footer">
+  © 2025 Social
+</footer>
+
+</body>
+</html>

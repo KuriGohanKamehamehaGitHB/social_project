@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Регистрация — Social</title>
+<style>
+/* ... CSS ... */
+:root { --bg: #0b0f14; --bg-soft: #111827; --card: #0f1624; --border: 1px solid rgba(255,255,255,.08); --text: #e5e7eb; --text-dim: #9ca3af; --accent: #1d9bf0; --radius: 16px; } * { box-sizing: border-box; } html, body { height: 100%; } body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 system-ui, -apple-system, Segoe UI, Roboto; display: grid; place-items: center; } a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; } .card { width: min(420px, 100% - 24px); background: var(--card); border: var(--border); border-radius: var(--radius); padding: 24px; } .logo { text-align: center; font-weight: 900; font-size: 22px; margin-bottom: 6px; } .subtitle { text-align: center; color: var(--text-dim); margin-bottom: 20px; } .form { display: grid; gap: 14px; } .field { display: grid; gap: 6px; } label { font-size: 13px; color: var(--text-dim); } input { width: 100%; padding: 12px; background: var(--bg-soft); border: var(--border); border-radius: 12px; color: var(--text); font-size: 15px; } input:focus { outline: none; border-color: var(--accent); } .btn { margin-top: 6px; padding: 12px; border-radius: 999px; border: none; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; } .footer { margin-top: 18px; text-align: center; font-size: 13px; color: var(--text-dim); }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <div class="logo">Social</div>
+  <div class="subtitle">Создание аккаунта</div>
+
+  <form class="form" method="POST">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="field">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <div style="color: #ef4444; font-size: 12px;">{{ field.errors }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <button class="btn" type="submit">Зарегистрироваться</button>
+  </form>
+
+  <div class="footer">
+    Уже есть аккаунт?
+    <a href="{% url 'login' %}">Войти</a>
+  </div>
+</div>
+
+</body>
+</html>

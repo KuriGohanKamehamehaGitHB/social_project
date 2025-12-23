@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social — главная</title>
+<style>
+/* ... (Твой CSS код остался без изменений, я его сокращу для удобства чтения) ... */
+:root { --bg: #0b0f14; --bg-soft: #111827; --card: #0f1624; --border: 1px solid rgba(255,255,255,.08); --text: #e5e7eb; --text-dim: #9ca3af; --accent: #1d9bf0; --radius: 14px; }
+* { box-sizing: border-box; } html, body { height: 100%; } body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu; } a { color: inherit; text-decoration: none; } img { display: block; max-width: 100%; } .container { width: min(680px, 100% - 24px); margin: 0 auto; } .header { position: sticky; top: 0; z-index: 10; background: rgba(11,15,20,.85); backdrop-filter: blur(10px); border-bottom: var(--border); } .header-inner { display: flex; align-items: center; gap: 14px; padding: 14px 0; } .logo { font-weight: 900; letter-spacing: .4px; font-size: 18px; } .user-box { margin-left: auto; display: flex; align-items: center; gap: 12px; } .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #1d9bf0, #38bdf8); display:flex; justify-content:center; align-items:center; font-weight:bold; color:white; } .user-meta { display: grid; line-height: 1.2; } .user-name { font-weight: 700; font-size: 14px; } .user-handle { font-size: 12px; color: var(--text-dim); } .auth-actions { margin-left: auto; display: flex; gap: 10px; } .btn { padding: 8px 14px; border-radius: 999px; border: var(--border); background: transparent; color: var(--text); font-weight: 600; } .btn-primary { background: var(--accent); color: #fff; border: none; } .feed { padding: 16px 0; display: grid; gap: 14px; } .post { background: var(--card); border: var(--border); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; } .post-header { display: flex; gap: 10px; } .post-avatar { width: 42px; height: 42px; border-radius: 50%; background: #1f2937; display: flex; justify-content:center; align-items:center; font-weight:bold; } .post-author { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; } .post-author strong { font-weight: 700; } .post-author span { color: var(--text-dim); font-size: 13px; } .post-text { font-size: 15px; white-space: pre-wrap; } .post-actions { display: flex; justify-content: space-between; max-width: 420px; margin-top: 6px; } .action { display: flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 13px; cursor: pointer; } .action:hover { color: var(--accent); } .footer { padding: 24px 0 32px; text-align: center; color: var(--text-dim); font-size: 13px; } @media (max-width: 520px) { .user-meta { display: none; } .post-text { font-size: 14px; } }
+/* Доп стили для лайка */
+.liked { color: #ef4444; }
+.create-btn { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo">Social</div>
+
+    {% if user.is_authenticated %}
+    <!-- АВТОРИЗОВАН -->
+    <div class="user-box">
+      <div class="user-meta">
+        <div class="user-name">{{ user.username }}</div>
+        <div class="user-handle"><a href="{% url 'logout' %}" style="color: var(--accent)">Выйти</a></div>
+      </div>
+      <div class="avatar">{{ user.username|first|upper }}</div>
+    </div>
+    {% else %}
+    <!-- ГОСТЬ -->
+    <div class="auth-actions">
+      <a class="btn" href="{% url 'login' %}">Войти</a>
+      <a class="btn btn-primary" href="{% url 'register' %}">Регистрация</a>
+    </div>
+    {% endif %}
+  </div>
+</header>
+
+<main class="container">
+  <section class="feed">
+
+    {% for post in posts %}
+    <!-- POST -->
+    <article class="post">
+      <!-- Ссылка на детальную страницу при клике -->
+      <a href="{% url 'post_detail' post.pk %}" style="text-decoration: none; display: block;">
+      <div class="post-header">
+        <div class="post-avatar">{{ post.author.username|first|upper }}</div>
+        <div>
+          <div class="post-author">
+            <strong>{{ post.author.username }}</strong>
+            <span>· {{ post.created_at|timesince }} назад</span>
+          </div>
+          <div class="post-text">{{ post.text }}</div>
+        </div>
+      </div>
+      </a>
+
+      <div class="post-actions">
+        <!-- Комментарии (ссылка на деталку) -->
+        <a href="{% url 'post_detail' post.pk %}" class="action">
+            💬 {{ post.comments.count }}
+        </a>
+        
+        <div class="action">🔁 0</div>
+        
+        <!-- ЛАЙК -->
+        <a href="{% url 'like_post' post.pk %}" class="action {% if request.user in post.likes.all %}liked{% endif %}">
+            ❤️ {{ post.total_likes }}
+        </a>
+        
+        <div class="action">↗ Поделиться</div>
+      </div>
+      
+      <!-- Сообщение о лайке -->
+      {% if request.user in post.likes.all %}
+          <div style="font-size: 12px; color: #ef4444; margin-top: 5px;">Вам понравился данный пост</div>
+      {% endif %}
+
+    </article>
+    {% endfor %}
+
+  </section>
+</main>
+
+{% if user.is_authenticated %}
+<a href="{% url 'create_post' %}" class="create-btn">+</a>
+{% endif %}
+
+<footer class="footer">
+  © 2025 Social
+</footer>
+
+</body>
+</html>
